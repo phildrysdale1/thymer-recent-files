@@ -1,0 +1,11 @@
+{
+  "ver": 1,
+  "version": "1.0.0",
+  "name": "Recent Files",
+  "icon": "ti-clock",
+  "description": "Quick access to recently modified files",
+  "custom": {
+    "maxFiles": 15,
+    "showCollection": true
+  }
+}
