@@ -278,30 +278,28 @@ class Plugin extends AppPlugin {
         }
     }
 
-   injectModalStyles() {
+injectModalStyles() {
     this.ui.injectCSS(`
         /* ==============================
            Backdrop
            ============================== */
-
         .recent-files-modal-backdrop {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.45);
+            background: rgba(0, 0, 0, 0.5);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 9999;
-            isolation: isolate;
         }
 
         /* ==============================
            Modal Container
            ============================== */
-
         .recent-files-modal {
             border-radius: 12px;
-            border: 1px solid var(--background-modifier-border);
+            /* Using theme-specific border or a fallback */
+            border: 1px solid var(--cards-border-color, var(--color-bg-400, #333));
             box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
 
             width: 520px;
@@ -310,42 +308,24 @@ class Plugin extends AppPlugin {
 
             display: flex;
             flex-direction: column;
-
             position: relative;
             z-index: 10001;
 
-            transform: translateZ(0);
-            will-change: transform;
-
-            backdrop-filter: none !important;
-            -webkit-backdrop-filter: none !important;
-            filter: none !important;
-            mix-blend-mode: normal !important;
-            opacity: 1 !important;
-        }
-
-        /* Light mode */
-        html:not([data-theme="dark"]) .recent-files-modal {
-            background: #ffffff;
-            color: #111;
-        }
-
-        /* Dark mode */
-        html[data-theme="dark"] .recent-files-modal {
-            background: #1c1c1c;
-            color: #eee;
+            /* Matches your theme's main window background */
+            background-color: var(--color-bg-900, #1e1e2e); 
+            color: var(--color-text-50, #cdd6f4);
         }
 
         /* ==============================
            Header
            ============================== */
-
         .recent-files-modal-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 14px 18px;
-            border-bottom: 1px solid var(--background-modifier-border);
+            /* Divider line using a slightly lighter background color */
+            border-bottom: 1px solid var(--color-bg-700, rgba(128,128,128,0.2));
         }
 
         .recent-files-close-btn {
@@ -353,7 +333,7 @@ class Plugin extends AppPlugin {
             border: none;
             font-size: 26px;
             cursor: pointer;
-            color: var(--text-muted);
+            color: var(--color-text-500, #6c7086);
             width: 28px;
             height: 28px;
             border-radius: 6px;
@@ -363,24 +343,19 @@ class Plugin extends AppPlugin {
         }
 
         .recent-files-close-btn:hover {
-            background: var(--background-modifier-hover);
-            color: var(--text-normal);
+            background: var(--color-bg-700, rgba(128,128,128,0.1));
+            color: var(--color-text-100, #fff);
         }
 
         /* ==============================
-           Body
+           Body & List Items
            ============================== */
-
         .recent-files-modal-body {
             flex: 1 1 auto;
             overflow-y: auto;
-            padding: 6px;
+            padding: 8px;
             min-height: 0;
         }
-
-        /* ==============================
-           List Items
-           ============================== */
 
         .recent-file-item {
             display: flex;
@@ -389,22 +364,29 @@ class Plugin extends AppPlugin {
             padding: 10px 12px;
             border-radius: 8px;
             cursor: pointer;
-            transition: background .12s ease, transform .12s ease;
+            transition: background .15s ease;
         }
 
         .recent-file-item:hover {
-            background: var(--background-modifier-hover);
-            transform: translateX(3px);
+            /* Uses the theme's hover color */
+            background: var(--sidebar-bg-hover, var(--color-bg-700, rgba(255,255,255,0.05)));
         }
 
         .recent-file-title {
             font-weight: 500;
-            color: var(--text-normal);
+            color: var(--color-text-100, inherit);
         }
 
         .recent-file-meta {
             font-size: 12px;
-            color: var(--text-muted);
+            color: var(--color-text-500, #6c7086);
+        }
+
+        /* Icon color tweak to match theme primary if available */
+        .recent-file-icon {
+            color: var(--color-primary-400, var(--color-text-200));
+            display: flex;
+            align-items: center;
         }
     `);
 }
