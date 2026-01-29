@@ -278,159 +278,137 @@ class Plugin extends AppPlugin {
         }
     }
 
-    injectModalStyles() {
-        this.ui.injectCSS(`
-            /* Modal backdrop */
-            .recent-files-modal-backdrop {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.6);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 9999;
-                animation: recent-files-fadeIn 0.15s ease-out;
-            }
+   injectModalStyles() {
+    this.ui.injectCSS(`
+        /* ==============================
+           Backdrop
+           ============================== */
 
-            @keyframes recent-files-fadeIn {
-                from {
-                    opacity: 0;
-                }
-                to {
-                    opacity: 1;
-                }
-            }
+        .recent-files-modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            isolation: isolate;
+        }
 
-            /* Modal container */
-            .recent-files-modal {
-                background: var(--background-primary);
-                border-radius: 8px;
-                box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
-                width: 500px;
-                max-width: 90vw;
-                max-height: 70vh;
-                display: flex;
-                flex-direction: column;
-                animation: recent-files-slideIn 0.2s ease-out;
-                border: 1px solid var(--background-modifier-border);
-                position: relative;
-                z-index: 10001;
-                isolation: isolate;
-                opacity: 1 !important;
-                filter: none;
-            }
+        /* ==============================
+           Modal Container
+           ============================== */
 
-            @keyframes recent-files-slideIn {
-                from {
-                    transform: translateY(-20px);
-                    opacity: 0;
-                }
-                to {
-                    transform: translateY(0);
-                    opacity: 1;
-                }
-            }
+        .recent-files-modal {
+            border-radius: 12px;
+            border: 1px solid var(--background-modifier-border);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
 
-            /* Modal header */
-            .recent-files-modal-header {
-                display: flex;
-                align-items: center;
-                justify-content: space-between;
-                padding: 16px 20px;
-                border-bottom: 1px solid var(--background-modifier-border);
-            }
+            width: 520px;
+            max-width: 92vw;
+            max-height: 72vh;
 
-            .recent-files-close-btn {
-                background: none;
-                border: none;
-                font-size: 28px;
-                line-height: 1;
-                cursor: pointer;
-                color: var(--text-muted);
-                padding: 0;
-                width: 28px;
-                height: 28px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 4px;
-                transition: all 0.1s;
-            }
+            display: flex;
+            flex-direction: column;
 
-            .recent-files-close-btn:hover {
-                background: var(--background-modifier-hover);
-                color: var(--text-normal);
-            }
+            position: relative;
+            z-index: 10001;
 
-            /* Modal body */
-            .recent-files-modal-body {
-                overflow-y: auto;
-                overflow-x: hidden;
-                padding: 8px;
-                flex: 1 1 auto;
-                min-height: 0;
-            }
+            transform: translateZ(0);
+            will-change: transform;
 
-            /* File list */
-            .recent-files-list {
-                display: flex;
-                flex-direction: column;
-                gap: 2px;
-            }
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            filter: none !important;
+            mix-blend-mode: normal !important;
+            opacity: 1 !important;
+        }
 
-            /* File item */
-            .recent-file-item {
-                display: flex;
-                align-items: center;
-                padding: 10px 12px;
-                border-radius: 6px;
-                cursor: pointer;
-                transition: all 0.1s;
-                gap: 12px;
-                user-select: none;
-            }
+        /* Light mode */
+        html:not([data-theme="dark"]) .recent-files-modal {
+            background: #ffffff;
+            color: #111;
+        }
 
-            .recent-file-item:hover {
-                background-color: var(--background-modifier-hover);
-                transform: translateX(2px);
-            }
+        /* Dark mode */
+        html[data-theme="dark"] .recent-files-modal {
+            background: #1c1c1c;
+            color: #eee;
+        }
 
-            .recent-file-item:active {
-                background-color: var(--background-modifier-active-hover);
-                transform: translateX(0);
-            }
+        /* ==============================
+           Header
+           ============================== */
 
-            .recent-file-icon {
-                color: var(--text-muted);
-                flex-shrink: 0;
-                display: flex;
-                align-items: center;
-                font-size: 18px;
-            }
+        .recent-files-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--background-modifier-border);
+        }
 
-            .recent-file-content {
-                flex: 1;
-                min-width: 0;
-            }
+        .recent-files-close-btn {
+            background: none;
+            border: none;
+            font-size: 26px;
+            cursor: pointer;
+            color: var(--text-muted);
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-            .recent-file-title {
-                font-weight: 500;
-                color: var(--text-normal);
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                margin-bottom: 3px;
-            }
+        .recent-files-close-btn:hover {
+            background: var(--background-modifier-hover);
+            color: var(--text-normal);
+        }
 
-            .recent-file-meta {
-                font-size: 12px;
-                color: var(--text-muted);
-                display: flex;
-                align-items: center;
-            }
-        `);
-    }
+        /* ==============================
+           Body
+           ============================== */
+
+        .recent-files-modal-body {
+            flex: 1 1 auto;
+            overflow-y: auto;
+            padding: 6px;
+            min-height: 0;
+        }
+
+        /* ==============================
+           List Items
+           ============================== */
+
+        .recent-file-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background .12s ease, transform .12s ease;
+        }
+
+        .recent-file-item:hover {
+            background: var(--background-modifier-hover);
+            transform: translateX(3px);
+        }
+
+        .recent-file-title {
+            font-weight: 500;
+            color: var(--text-normal);
+        }
+
+        .recent-file-meta {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    `);
+}
+
+
+
 }
