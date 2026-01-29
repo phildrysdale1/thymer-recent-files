@@ -299,7 +299,7 @@ injectModalStyles() {
         .recent-files-modal {
             border-radius: 12px;
             /* Using theme-specific border or a fallback */
-            border: 1px solid var(--cards-border-color, var(--color-bg-400, #333));
+            border: 1px solid var(--cards-border-color, var(--color-bg-400));
             box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
 
             width: 520px;
@@ -312,8 +312,8 @@ injectModalStyles() {
             z-index: 10001;
 
             /* Matches your theme's main window background */
-            background-color: var(--color-bg-900, #1e1e2e); 
-            color: var(--color-text-50, #cdd6f4);
+            background-color: var(--color-bg-900); 
+            color: var(--color-text-50);
         }
 
         /* ==============================
@@ -325,7 +325,7 @@ injectModalStyles() {
             justify-content: space-between;
             padding: 14px 18px;
             /* Divider line using a slightly lighter background color */
-            border-bottom: 1px solid var(--color-bg-700, rgba(128,128,128,0.2));
+            border-bottom: 1px solid var(--color-bg-700));
         }
 
         .recent-files-close-btn {
@@ -333,7 +333,7 @@ injectModalStyles() {
             border: none;
             font-size: 26px;
             cursor: pointer;
-            color: var(--color-text-500, #6c7086);
+            color: var(--color-text-500);
             width: 28px;
             height: 28px;
             border-radius: 6px;
@@ -343,8 +343,8 @@ injectModalStyles() {
         }
 
         .recent-files-close-btn:hover {
-            background: var(--color-bg-700, rgba(128,128,128,0.1));
-            color: var(--color-text-100, #fff);
+            background: var(--color-bg-700));
+            color: var(--color-text-100);
         }
 
         /* ==============================
@@ -369,17 +369,17 @@ injectModalStyles() {
 
         .recent-file-item:hover {
             /* Uses the theme's hover color */
-            background: var(--sidebar-bg-hover, var(--color-bg-700, rgba(255,255,255,0.05)));
+            background: var(--sidebar-bg-hover, var(--color-bg-700)));
         }
 
         .recent-file-title {
             font-weight: 500;
-            color: var(--color-text-100, inherit);
+            color: var(--color-text-100);
         }
 
         .recent-file-meta {
             font-size: 12px;
-            color: var(--color-text-500, #6c7086);
+            color: var(--color-text-500);
         }
 
         /* Icon color tweak to match theme primary if available */
@@ -390,7 +390,4 @@ injectModalStyles() {
         }
     `);
 }
-
-
-
 }
