@@ -6,6 +6,7 @@
  * - Click ★ to star/unstar a file (persisted in localStorage).
  * - Click any file row to open it in a new panel.
  * - Configurable number of files via config.custom.maxFiles (default: 15).
+ * - Shows created_by and modified_by information for each file.
  *
  * Performance: Only scans when you open the Recent panel — NO background polling.
  */
@@ -40,6 +41,28 @@ class Plugin extends AppPlugin {
 
     onUnload() {
         if (this.sidebarItem) this.sidebarItem.remove();
+    }
+
+    // ─────────────────────────────────────────────
+    // User cache
+    // ─────────────────────────────────────────────
+
+    _buildUserCache() {
+        const users = this.data.getActiveUsers();
+        const cache = {};
+        for (const user of users) {
+            cache[user.guid] = user.getDisplayName() || user.getEmail() || user.guid;
+        }
+        return cache;
+    }
+
+    _isDebugEnabled() {
+        return this.getConfiguration().custom?.debug === true;
+    }
+
+    _debug(...args) {
+        if (!this._isDebugEnabled()) return;
+        console.log('[Recent Files][debug]', ...args);
     }
 
     // ─────────────────────────────────────────────
@@ -237,8 +260,29 @@ class Plugin extends AppPlugin {
         }
 
         const timeSpan = document.createElement('span');
-        timeSpan.textContent = this.formatRelativeTime(file.updatedAt);
+        timeSpan.textContent = this.formatRelativeTime(file.activityAt);
         meta.appendChild(timeSpan);
+
+        const actorSpan = document.createElement('span');
+        const showModifiedBy = !!file.hasResolvedModifier;
+        const hasResolvedActor = showModifiedBy ? !!file.hasResolvedModifier : !!file.hasResolvedCreator;
+        const hideUnknownAuthor = this.getConfiguration().custom?.hideUnknownAuthor === true;
+
+        if (!(hideUnknownAuthor && !hasResolvedActor)) {
+            const modifiedSep = document.createElement('span');
+            modifiedSep.className = 'rf-sep';
+            modifiedSep.textContent = '•';
+            meta.appendChild(modifiedSep);
+
+            const actorName = showModifiedBy ? file.modifiedByName : file.createdByName;
+            actorSpan.textContent = `${showModifiedBy ? 'Modified by' : 'Created by'} ${hasResolvedActor ? actorName : '(unavailable)'}`;
+            if (showModifiedBy) {
+                actorSpan.title = file.hasResolvedCreator
+                    ? `Created by ${file.createdByName}`
+                    : 'Created by (unavailable)';
+            }
+            meta.appendChild(actorSpan);
+        }
 
         content.appendChild(titleDiv);
         content.appendChild(meta);
@@ -318,28 +362,104 @@ class Plugin extends AppPlugin {
     async getRecentFiles(maxFiles, pinnedGuids) {
         const files = [];
         const collections = await this.data.getAllCollections();
+        const userCache = this._buildUserCache();
+        const cacheGuids = Object.keys(userCache);
+        let unknownLogCount = 0;
+        const unknownLogLimit = 30;
+        const stats = {
+            collectionsScanned: 0,
+            recordsScanned: 0,
+            unknownCreator: 0,
+            unresolvedModifier: 0
+        };
+
+        this._debug('build user cache', {
+            activeUsersCount: this.data.getActiveUsers().length,
+            userCacheCount: cacheGuids.length,
+            firstUserGuids: cacheGuids.slice(0, 10)
+        });
 
         for (const collection of collections) {
             if (collection.getName().toLowerCase().includes('journal')) continue;
+            stats.collectionsScanned++;
 
             const records = await collection.getAllRecords();
             const collectionName = collection.getName();
             const collectionIcon = collection.getConfiguration().icon;
 
             for (const record of records) {
+                stats.recordsScanned++;
                 const updatedAt = record.getUpdatedAt();
-                if (updatedAt) {
-                    files.push({
+                const createdAt = record.getCreatedAt();
+                if (!updatedAt && !createdAt) continue;
+
+                // Access private row data to get u_by (updated_by) and c_by (created_by)
+                const row = record._getRow?.();
+                const cguids = Array.isArray(row?.cguids) ? row.cguids : [];
+
+                const createdByCandidates = [row?.c_by, row?.u_by, ...cguids].filter(Boolean);
+                const modifiedByCandidates = [row?.u_by, row?.c_by, ...cguids].filter(Boolean);
+
+                const createdByGuid = createdByCandidates.find(guid => !!userCache[guid]) || row?.c_by || row?.u_by || cguids[0] || null;
+                const modifiedByGuid = modifiedByCandidates.find(guid => !!userCache[guid]) || row?.u_by || row?.c_by || cguids[0] || null;
+
+                const createdByName = (createdByGuid && userCache[createdByGuid]) || 'Unknown';
+                const resolvedModifiedByName = (modifiedByGuid && userCache[modifiedByGuid]) || null;
+                const hasResolvedCreator = createdByName !== 'Unknown';
+                const hasResolvedModifier =
+                    !!resolvedModifiedByName &&
+                    !!modifiedByGuid &&
+                    modifiedByGuid !== createdByGuid;
+                const hasUnknownCreator = !createdByGuid || createdByName === 'Unknown';
+                const hasUnresolvedModifier = !!modifiedByGuid && !resolvedModifiedByName;
+                if (hasUnknownCreator) stats.unknownCreator++;
+                if (hasUnresolvedModifier) stats.unresolvedModifier++;
+
+                if ((hasUnknownCreator || hasUnresolvedModifier) && unknownLogCount < unknownLogLimit) {
+                    unknownLogCount++;
+                    this._debug('user resolution issue', {
                         recordGuid: record.guid,
-                        collectionName,
-                        collectionIcon,
                         title: record.getName(),
-                        updatedAt,
-                        isPinned: pinnedGuids.has(record.guid)
+                        collectionName,
+                        createdByGuid: createdByGuid || null,
+                        modifiedByGuid: modifiedByGuid || null,
+                        createdByCandidates,
+                        modifiedByCandidates,
+                        cguids,
+                        createdByName,
+                        resolvedModifiedByName,
+                        rowKeys: row ? Object.keys(row).slice(0, 25) : [],
+                        updatedAt: updatedAt ? updatedAt.toISOString() : null,
+                        createdAt: createdAt ? createdAt.toISOString() : null
                     });
                 }
+
+                const activityAt = hasResolvedModifier
+                    ? (updatedAt || createdAt)
+                    : (createdAt || updatedAt);
+
+                files.push({
+                    recordGuid: record.guid,
+                    collectionName,
+                    collectionIcon,
+                    title: record.getName(),
+                    updatedAt,
+                    createdAt,
+                    activityAt,
+                    createdByName,
+                    modifiedByName: resolvedModifiedByName || createdByName,
+                    hasResolvedCreator,
+                    hasResolvedModifier,
+                    isPinned: pinnedGuids.has(record.guid)
+                });
             }
         }
+
+        this._debug('scan summary', {
+            ...stats,
+            unknownLogsShown: unknownLogCount,
+            unknownLogsSuppressed: Math.max(0, stats.unknownCreator + stats.unresolvedModifier - unknownLogCount)
+        });
 
         const pinOrder = Array.from(pinnedGuids);
         const pinned = files
@@ -348,7 +468,7 @@ class Plugin extends AppPlugin {
 
         const recent = files
             .filter(f => !f.isPinned)
-            .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
+            .sort((a, b) => b.activityAt.getTime() - a.activityAt.getTime())
             .slice(0, maxFiles);
 
         return [...pinned, ...recent];
