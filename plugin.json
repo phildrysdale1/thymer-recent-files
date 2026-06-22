@@ -6,6 +6,8 @@
   "description": "Quick access to recently modified files",
   "custom": {
     "maxFiles": 15,
-    "showCollection": true
+    "showCollection": true,
+    "hideUnknownAuthor": false,
+    "debug": false
   }
 }

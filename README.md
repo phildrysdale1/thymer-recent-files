@@ -35,10 +35,14 @@ Edit the plugin settings to customise:
 {
   "custom": {
     "maxFiles": 15,
-    "showCollection": true
+    "showCollection": true,
+    "hideUnknownAuthor": false,
+    "debug": false
   }
 }
 ```
 
 - `maxFiles` - Number of files to show (default: 15)
 - `showCollection` - Show collection names (default: true)
+- `hideUnknownAuthor` - Hide author label when creator/modifier cannot be resolved (default: false)
+- `debug` - Enable debug logs in the console (default: false)
